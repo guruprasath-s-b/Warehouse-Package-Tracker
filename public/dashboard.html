@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Warehouse Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+    .card { padding: 12px; border: 1px solid #ddd; border-radius: 6px; background:#fff }
+    .big { font-size: 2rem; font-weight:700 }
+  </style>
+</head>
+<body>
+  <h1>Warehouse Dashboard</h1>
+  <div class="grid">
+    <div class="card">
+      <div>Total packages</div>
+      <div id="total" class="big">—</div>
+    </div>
+    <div class="card">
+      <canvas id="statusChart"></canvas>
+    </div>
+    <div class="card">
+      <canvas id="locationChart"></canvas>
+    </div>
+    <div class="card">
+      <canvas id="trendChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    async function load() {
+      const res = await fetch('/analytics')
+      const data = await res.json()
+      document.getElementById('total').textContent = data.total_packages
+
+      // Status chart
+      const statusCtx = document.getElementById('statusChart').getContext('2d')
+      const statusLabels = Object.keys(data.counts_by_status)
+      const statusValues = Object.values(data.counts_by_status)
+      new Chart(statusCtx, { type: 'doughnut', data: { labels: statusLabels, datasets: [{ data: statusValues, backgroundColor: ['#36a2eb','#ffcd56','#4bc0c0'] }] } })
+
+      // Location bar
+      const locCtx = document.getElementById('locationChart').getContext('2d')
+      const locLabels = Object.keys(data.counts_by_location)
+      const locValues = Object.values(data.counts_by_location)
+      new Chart(locCtx, { type: 'bar', data: { labels: locLabels, datasets: [{ label: 'Packages', data: locValues, backgroundColor: '#7cb342' }] }, options: { indexAxis: 'y' } })
+
+      // Trend chart
+      const trendCtx = document.getElementById('trendChart').getContext('2d')
+      const dates = data.delivery_time_timeseries.map(d => d.date)
+      const avgs = data.delivery_time_timeseries.map(d => d.avg_days)
+      new Chart(trendCtx, { type: 'line', data: { labels: dates, datasets: [{ label: 'Avg delivery days', data: avgs, borderColor: '#ff6384', fill:false }] } })
+    }
+    load().catch(e => { console.error(e); alert('Failed to load analytics.') })
+  </script>
+</body>
+</html>

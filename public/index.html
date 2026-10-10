@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warehouse Package Tracker - Logistics Management System</title>
+    <meta name="description" content="Professional warehouse package tracking system. Manage inventory, track shipments, and monitor delivery status with AI chatbot assistance.">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="logo1.png" rel="icon">
+</head>
+<body>
+    
+    <!-- Hero Section -->
+    <header class="hero-section" style="background: url('img1.jpg') center/cover no-repeat; height: 300px;">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <div class="hero-title">
+                <i class="fas fa-warehouse"></i>
+                <h1>Warehouse Package Tracker</h1>
+            </div>
+            <p>Manage your logistics with precision and efficiency</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Stats Overview -->
+        <section class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-icon received">
+                    <i class="fas fa-box"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="receivedCount">0</h3>
+                    <p>Received</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon in-transit">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="inTransitCount">0</h3>
+                    <p>In Transit</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon delivered">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="deliveredCount">0</h3>
+                    <p>Delivered</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon total">
+                    <i class="fas fa-boxes"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalCount">0</h3>
+                    <p>Total Packages</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Controls -->
+        <section class="controls">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search packages by ID, sender, recipient, or description...">
+            </div>
+            <button class="add-package-btn" onclick="toggleAddForm()">
+                <i class="fas fa-plus"></i>
+                Add Package
+            </button>
+            <!-- New button to open analytics dashboard -->
+            <button class="view-graphs-btn" onclick="window.open('/dashboard', '_blank')" style="margin-left:12px;">
+                <i class="fas fa-chart-line"></i>
+                View Graphs
+            </button>
+        </section>
+
+        <!-- Add Package Form -->
+        <section id="addPackageForm" class="add-package-form hidden">
+            <div class="form-header">
+                <h3>Add New Package</h3>
+                <button onclick="toggleAddForm()" class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form onsubmit="addPackage(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="description">Description *</label>
+                        <input type="text" id="description" placeholder="Enter package description" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="weight">Weight (kg) *</label>
+                        <input type="number" id="weight" step="0.1" placeholder="Enter weight in kg" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sender">Sender Name *</label>
+                        <input type="text" id="sender" placeholder="Enter sender's name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="receiver">Receiver Name *</label>
+                        <input type="text" id="receiver" placeholder="Enter receiver's name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="location">Location *</label>
+                        <input type="text" id="location" placeholder="Enter package location" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="mobile">Mobile Number (Optional)</label>
+                        <input type="tel" id="mobile" placeholder="Enter contact number">
+                    </div>
+                    <div class="form-group">
+                        <label for="notes">Additional Notes (Optional)</label>
+                        <textarea id="notes" rows="2" placeholder="Enter any additional notes"></textarea>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="toggleAddForm()" class="cancel-btn">Cancel</button>
+                    <button type="submit" class="submit-btn">Add Package</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Package Tabs -->
+        <section class="package-tabs">
+            <div class="tab-list">
+                <button class="tab-btn active" onclick="switchTab('all')">All Packages (<span id="allCount">0</span>)</button>
+                <button class="tab-btn" onclick="switchTab('received')">Received (<span id="receivedTabCount">0</span>)</button>
+                <button class="tab-btn" onclick="switchTab('in-transit')">In Transit (<span id="inTransitTabCount">0</span>)</button>
+                <button class="tab-btn" onclick="switchTab('delivered')">Delivered (<span id="deliveredTabCount">0</span>)</button>
+            </div>
+            <div class="tab-content">
+                <div id="packagesGrid" class="packages-grid"></div>
+                <div id="emptyState" class="empty-state hidden">
+                    <i class="fas fa-box-open"></i>
+                    <h3>No packages found</h3>
+                    <p id="emptyMessage">Add your first package to get started</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Chatbot -->
+        <section class="chatbot-section">
+            <div class="chatbot-header">
+                <i class="fas fa-robot"></i>
+                <h3>AI Package Assistant</h3>
+            </div>
+            <div id="chatMessages" class="chat-messages">
+                <div class="message bot-message">
+                    <div class="message-content">
+                        <p>Hello! I'm your AI package assistant. You can ask me questions like:</p>
+                        <ul>
+                            <li>"What's the status of package PKG001?"</li>
+                            <li>"How many packages are in transit?"</li>
+                            <li>"Show me packages from TechCorp"</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="Ask about packages, inventory, or logistics...">
+                <button onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">
+        <div class="toast-content">
+            <i class="fas fa-check-circle"></i>
+            <span id="toastMessage"></span>
+        </div>
+    </div>
+    <script src="warehouse.js"></script>
+    <script src="form-handler.js"></script>
+            // Update active tab button
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.innerText.toLowerCase().includes(tab));
+            });
+            warehouseManager.renderPackages();
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            if (input.value.trim()) {
+                warehouseManager.sendMessage(input.value);
+                input.value = '';
+            }
+        }
+    </script>
+</body>
+</html>
